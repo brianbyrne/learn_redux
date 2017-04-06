@@ -85,7 +85,6 @@ const getVisibleTodos = (todos, filter) => {
 class Todo extends Component {
     render () {
         const {onClick, completed, text} = this.props;
-
         React.createElement('li', { 
                 onClick, 
                 style: {
@@ -93,6 +92,19 @@ class Todo extends Component {
                 }
             }, 
         text);
+    }
+}
+
+class TodoList extends Component {
+    render() {
+        const {todos, onTodoClick} = this.props;
+        React.createElement('ul', {}, todos.map(t => 
+                    React.createElement(Todo, {
+                        complete: t.completed, 
+                        text: t.text, 
+                        onClick: () => {onTodoClick(t.id)}
+                    })
+                ));
     }
 }
 
@@ -121,18 +133,12 @@ class TodoAppComponent extends Component {
                         this.input.value = '';
                     }
                 }, 'Add Todo'),
-                React.createElement('ul', {}, visibleTodos.map(t => 
-                    React.createElement(Todo, {
-                        complete: t.completed, 
-                        text: t.text, 
-                        onClick: () => {
-                            store.dispatch({
-                                type: 'TOGGLE_TODO',
-                                id: t.id
-                            })
-                        }
-                    })
-                )),
+                React.createElement(TodoList, {
+                    todos: visibleTodos,
+                    onTodoClick: (todo) => {
+                         store.dispatch({type: 'TOGGLE_TODO', id: todo.id})
+                    }
+                }),
                 React.createElement(FilterLink, { filter: 'SHOW_ALL', currentFilter: visibilityFilter }, 'All'),
                 React.createElement(FilterLink, { filter: 'SHOW_ACTIVE', currentFilter: visibilityFilter}, 'Active'),
                 React.createElement(FilterLink, { filter: 'SHOW_COMPLETED', currentFilter: visibilityFilter}, 'Completed')
