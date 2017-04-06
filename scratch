@@ -1,0 +1,87 @@
+const todo = (state, action) => {
+    switch (action.type) {
+        case 'ADD_TODO':
+            return {
+                id: action.id,
+                text: action.text,
+                completed: false
+            };
+            break;
+        case 'TOGGLE_TODO':
+            if (state.ids!== state.id) {
+                return state;
+            } else {
+                return Object.assign({}, state, {completed: !state.completed});
+            }
+        default:
+            return state;
+    }
+};
+
+const todos = (state = [], action) => {
+    switch (action.type) {
+        case 'ADD_TODO':
+            return [
+                ...state,
+                todo(undefined, action)
+            ];
+        case 'TOGGLE_TODO':
+            return state.map(t => todo(t, action));
+        default:
+            return state;
+    }
+};
+
+const visibilityFilter = (state = 'SHOW_ALL', action) => {
+    switch (action.type) {
+        case 'SET_VISIBILITY_FILTER':
+            return action.filter;
+        default:
+            return state;
+    }
+}
+
+const { combineReducers } = Redux;
+const todoApp = combineReducers({
+    todos, // es6 short hand notation for todos: todos
+    visibilityFilter
+});
+
+
+const { createStore } = Redux;
+const store = createStore(todoApp);
+
+// const { Component } = React;
+
+
+let nextTodoId = 0;
+let TodoAppComponent = React.createClass({
+    render: function () {
+        return (
+            React.createElement('div', {},
+                [React.createElement('h1', {}, 'halp'),
+                React.createElement('button', {
+                    onClick: function() {
+                        store.dispatch({
+                            type: 'ADD_TODO',
+                            text: 'Test',
+                            id: nextTodoId++
+                        })
+                    }
+                }, 'Add Todo')],
+                React.createElement('ul', {}, this.props.todos.map(t => React.createElement('li', {id: t.id}, t.text))))
+        );
+    }
+});
+    
+const render = () => {
+    ReactDOM.render(React.createElement(TodoAppComponent, {todos: store.getState().todos}), document.getElementById('root'));
+}
+
+store.subscribe(render);
+render();
+
+console.log(store.getState());
+
+
+
