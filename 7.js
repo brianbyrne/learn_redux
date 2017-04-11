@@ -20,9 +20,11 @@ const todos = (state = [], action) => {
                 todo(undefined, action)
             ];
         case 'TOGGLE_TODO':
-            return state.map(t => t.id === action.id
-            ? Object.assign({}, t, {completed: !t.completed})
-            : t);
+            return state.map(t => 
+                t.id === action.id 
+                ? Object.assign({}, t, {completed: !t.completed}) 
+                : t
+            );
         default:
             return state;
     }
@@ -37,21 +39,32 @@ const visibilityFilter = (state = 'SHOW_ALL', action) => {
     }
 }
 
-const { combineReducers } = Redux;
+const {
+    combineReducers
+} = Redux;
 const todoApp = combineReducers({
-    todos, // es6 short hand notation for todos: todos
+    todos,
     visibilityFilter
 });
 
 
-const { createStore } = Redux;
+const {
+    createStore
+} = Redux;
 const store = createStore(todoApp);
 
-const { Component } = React;
+const {
+    Component
+} = React;
 
 class FilterLink extends Component {
     render() {
-        const {filter, currentFilter, children} = this.props;
+        const {
+            filter,
+            currentFilter,
+            children,
+            onClick
+        } = this.props;
 
         if (filter === currentFilter) {
             return (React.createElement('span', {}, children))
@@ -61,13 +74,9 @@ class FilterLink extends Component {
             href: '#',
             onClick: e => {
                 e.preventDefault();
-                store.dispatch({
-                    type: 'SET_VISIBILITY_FILTER',
-                    filter: filter
-                });
+                onClick(filter);
             }
-        }, children)
-        );
+        }, children));
     }
 }
 
@@ -83,46 +92,56 @@ const getVisibleTodos = (todos, filter) => {
 }
 
 class Todo extends Component {
-    render () {
-        const {onClick, completed, text} = this.props;
-        React.createElement('li', { 
-                onClick, 
+    render() {
+        const {
+            onClick,
+            completed,
+            text,
+            id
+        } = this.props;
+
+        console.log('completed ' + completed);
+        return (React.createElement('li', {
+                onClick,
+                key: id,
                 style: {
                     textDecoration: completed ? 'line-through' : 'none'
                 }
-            }, 
-        text);
+            },
+            text));
     }
 }
 
 class TodoList extends Component {
     render() {
-        const {todos, onTodoClick} = this.props;
-        React.createElement('ul', {}, todos.map(t => 
-                    React.createElement(Todo, {
-                        complete: t.completed, 
-                        text: t.text, 
-                        onClick: () => {onTodoClick(t.id)}
-                    })
-                ));
+        const {
+            todos,
+            onTodoClick
+        } = this.props;
+        return (React.createElement('ul', {}, todos.map(t =>
+            React.createElement(Todo, {
+                completed: t.completed,
+                text: t.text,
+                key: t.id,
+                onClick: () => {
+                    onTodoClick(t)
+                }
+            })
+        )));
     }
 }
 
 let nextTodoId = 0;
-class TodoAppComponent extends Component {
-    render () {
-        const {
-            todos,
-            visibilityFilter
-        } = this.props;
-        
-        const visibleTodos = getVisibleTodos(todos, visibilityFilter);
-
+class AddTodo extends Component {
+    render() {
         return (
-            React.createElement('div', {},
-                React.createElement("input", { ref: (node) => {
-                    this.input = node;
-                }}),
+            React.createElement(
+                'div', {},
+                React.createElement("input", {
+                    ref: (node) => {
+                        this.input = node;
+                    }
+                }),
                 React.createElement('button', {
                     onClick: () => {
                         store.dispatch({
@@ -132,21 +151,77 @@ class TodoAppComponent extends Component {
                         });
                         this.input.value = '';
                     }
-                }, 'Add Todo'),
+                }, 'Add Todo')
+            )
+        )
+    }
+}
+
+class Footer extends Component {
+    render() {
+        const {
+            visibilityFilter,
+            onFilterClick
+        } = this.props;
+
+        return (
+            React.createElement('div', {}, 
+                React.createElement(FilterLink, {
+                    onClick: onFilterClick,
+                    filter: 'SHOW_ALL',
+                    currentFilter: visibilityFilter
+                }, 'All'),
+                React.createElement(FilterLink, {
+                    onClick: onFilterClick,
+                    filter: 'SHOW_ACTIVE',
+                    currentFilter: visibilityFilter
+                }, 'Active'),
+                React.createElement(FilterLink, {
+                    onClick: onFilterClick,
+                    filter: 'SHOW_COMPLETED',
+                    currentFilter: visibilityFilter
+                }, 'Completed')
+            )
+        )
+    }
+}
+
+class TodoAppComponent extends Component {
+    render() {
+        const {
+            todos,
+            visibilityFilter
+        } = this.props;
+
+        const visibleTodos = getVisibleTodos(todos, visibilityFilter);
+
+        return (
+            React.createElement('div', {},
+                React.createElement(AddTodo, {}),
                 React.createElement(TodoList, {
                     todos: visibleTodos,
                     onTodoClick: (todo) => {
-                         store.dispatch({type: 'TOGGLE_TODO', id: todo.id})
+                        store.dispatch({
+                            type: 'TOGGLE_TODO',
+                            todo,
+                            id: todo.id
+                        })
                     }
                 }),
-                React.createElement(FilterLink, { filter: 'SHOW_ALL', currentFilter: visibilityFilter }, 'All'),
-                React.createElement(FilterLink, { filter: 'SHOW_ACTIVE', currentFilter: visibilityFilter}, 'Active'),
-                React.createElement(FilterLink, { filter: 'SHOW_COMPLETED', currentFilter: visibilityFilter}, 'Completed')
+                React.createElement(Footer, {
+                    currentFilter: visibilityFilter,
+                    onFilterClick: (filter) => {
+                        store.dispatch({
+                            type: 'SET_VISIBILITY_FILTER',
+                            filter
+                        });
+                    }
+                })
             )
         );
     }
 };
-    
+
 const render = () => {
     ReactDOM.render(React.createElement(TodoAppComponent, Object.assign({}, store.getState())), document.getElementById('root'));
 }
