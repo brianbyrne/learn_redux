@@ -124,7 +124,6 @@ class Todo extends Component {
             id
         } = this.props;
 
-        console.log('completed ' + completed);
         return (React.createElement('li', {
                 onClick,
                 key: id,
@@ -152,6 +151,33 @@ class TodoList extends Component {
                 }
             })
         )));
+    }
+}
+
+class VisibleTodoList extends Component {
+    componentDidMount() {
+        this.unsubscribe = store.subscribe(() =>
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+    
+    render() {
+        const props = this.props;
+        const state = store.getState();
+
+        return (React.createElement(TodoList, {
+            todos: getVisibleTodos(state.todos, state.visibilityFilter),
+            onTodoClick: todo => { 
+                return store.dispatch({
+                type: 'TOGGLE_TODO',
+                id: todo.id
+            })
+            }
+        }));
     }
 }
 
@@ -201,26 +227,10 @@ class Footer extends Component {
 
 class TodoAppComponent extends Component {
     render() {
-        const {
-            todos,
-            visibilityFilter
-        } = this.props;
-
-        const visibleTodos = getVisibleTodos(todos, visibilityFilter);
-
         return (
             React.createElement('div', {},
                 React.createElement(AddTodo, {}),
-                React.createElement(TodoList, {
-                    todos: visibleTodos,
-                    onTodoClick: (todo) => {
-                        store.dispatch({
-                            type: 'TOGGLE_TODO',
-                            todo,
-                            id: todo.id
-                        })
-                    }
-                }),
+                React.createElement(VisibleTodoList, {}),
                 React.createElement(Footer, {})
             )
         );
@@ -228,7 +238,8 @@ class TodoAppComponent extends Component {
 };
 
 const render = () => {
-    ReactDOM.render(React.createElement(TodoAppComponent, Object.assign({}, store.getState())), document.getElementById('root'));
+    ReactDOM.render(
+        React.createElement(TodoAppComponent, {}), document.getElementById('root'));
 }
 
 store.subscribe(render);
