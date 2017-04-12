@@ -46,8 +46,7 @@ const todoApp = combineReducers({
     todos,
     visibilityFilter
 });
-
-
+ 
 const {
     createStore
 } = Redux;
@@ -57,26 +56,51 @@ const {
     Component
 } = React;
 
-class FilterLink extends Component {
+class Link extends Component {
     render() {
         const {
-            filter,
-            currentFilter,
+            active,
             children,
             onClick
         } = this.props;
 
-        if (filter === currentFilter) {
+        if (active) {
             return (React.createElement('span', {}, children))
         }
 
         return (React.createElement('a', {
             href: '#',
-            onClick: e => {
-                e.preventDefault();
-                onClick(filter);
-            }
+            onClick: () => { onClick(); },
         }, children));
+    }
+}
+
+class FilterLink extends Component {
+    componentDidMount() {
+        this.unsubscribe = store.subscribe(() =>
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+    
+    render() {
+        const props = this.props;
+        const state = store.getState();
+
+        return (
+            React.createElement(Link, {
+                active: props.filter === state.visibilityFilter,
+                onClick: () => {
+                    store.dispatch({
+                        type: 'SET_VISIBILITY_FILTER',
+                        filter: props.filter
+                    })
+                }
+            }, props.children)
+        );
     }
 }
 
@@ -159,27 +183,16 @@ class AddTodo extends Component {
 
 class Footer extends Component {
     render() {
-        const {
-            visibilityFilter,
-            onFilterClick
-        } = this.props;
-
         return (
             React.createElement('div', {}, 
                 React.createElement(FilterLink, {
-                    onClick: onFilterClick,
                     filter: 'SHOW_ALL',
-                    currentFilter: visibilityFilter
                 }, 'All'),
                 React.createElement(FilterLink, {
-                    onClick: onFilterClick,
-                    filter: 'SHOW_ACTIVE',
-                    currentFilter: visibilityFilter
+                    filter: 'SHOW_ACTIVE'
                 }, 'Active'),
                 React.createElement(FilterLink, {
-                    onClick: onFilterClick,
                     filter: 'SHOW_COMPLETED',
-                    currentFilter: visibilityFilter
                 }, 'Completed')
             )
         )
@@ -208,15 +221,7 @@ class TodoAppComponent extends Component {
                         })
                     }
                 }),
-                React.createElement(Footer, {
-                    currentFilter: visibilityFilter,
-                    onFilterClick: (filter) => {
-                        store.dispatch({
-                            type: 'SET_VISIBILITY_FILTER',
-                            filter
-                        });
-                    }
-                })
+                React.createElement(Footer, {})
             )
         );
     }
