@@ -242,7 +242,6 @@ const render = () => {
         React.createElement(TodoAppComponent, {}), document.getElementById('root'));
 }
 
-store.subscribe(render);
 render();
 
 console.log(store.getState());
