@@ -72,7 +72,7 @@ class Link extends Component {
 
 class FilterLink extends Component {    
     componentDidMount() {
-        const { store } = this.props;
+        const { store } = this.context;
         this.unsubscribe = store.subscribe(() =>
             this.forceUpdate()
         );
@@ -83,20 +83,25 @@ class FilterLink extends Component {
     }
     
     render() {
-        const { store, filter, children } = this.props;
+        const { store } = this.context;
+        const { filter } = this.props;
         const state = store.getState();
         return (
             React.createElement(Link, {
                 active: filter === state.visibilityFilter,
                 onClick: () => {
+                    console.log('filter clicked');
                     store.dispatch({
                         type: 'SET_VISIBILITY_FILTER',
                         filter: filter
                     })
                 }
-            }, children)
+            }, this.props.children)
         );
     }
+}
+FilterLink.contextTypes = {
+    store: React.PropTypes.object
 }
 
 const getVisibleTodos = (todos, filter) => {
@@ -151,7 +156,7 @@ class TodoList extends Component {
 
 class VisibleTodoList extends Component {
     componentDidMount() {
-        const { store } = this.props;
+        const { store } = this.context;
         this.unsubscribe = store.subscribe(() =>
             this.forceUpdate()
         );
@@ -162,7 +167,7 @@ class VisibleTodoList extends Component {
     }
     
     render() {
-        const { store } = this.props;
+        const { store } = this.context;
         const state = store.getState();
         return (React.createElement(TodoList, {
             todos: getVisibleTodos(state.todos, state.visibilityFilter),
@@ -175,11 +180,14 @@ class VisibleTodoList extends Component {
         }));
     }
 }
+VisibleTodoList.contextTypes = {
+    store: React.PropTypes.object
+};
 
 let nextTodoId = 0;
 class AddTodo extends Component {
     render() {
-        const { store } = this.props;
+        const { store } = this.context;
         return (
             React.createElement(
                 'div', {},
@@ -202,23 +210,22 @@ class AddTodo extends Component {
         )
     }
 }
+AddTodo.contextTypes = {
+    store: React.PropTypes.object
+}
 
 class Footer extends Component {
     render() {
-        const { store } = this.props;        
         return (
             React.createElement('div', {}, 
                 React.createElement(FilterLink, {
                     filter: 'SHOW_ALL',
-                    store
                 }, 'All'),
                 React.createElement(FilterLink, {
                     filter: 'SHOW_ACTIVE',
-                    store
                 }, 'Active'),
                 React.createElement(FilterLink, {
                     filter: 'SHOW_COMPLETED',
-                    store
                 }, 'Completed')
             )
         )
@@ -227,24 +234,38 @@ class Footer extends Component {
 
 class TodoAppComponent extends Component {
     render() {
-        const { store } = this.props;
         return (
             React.createElement('div', {},
-                React.createElement(AddTodo, { store }),
-                React.createElement(VisibleTodoList, { store }),
-                React.createElement(Footer, { store })
+                React.createElement(AddTodo),
+                React.createElement(VisibleTodoList),
+                React.createElement(Footer)
             )
         );
     }
+};
+
+class Provider extends Component {
+    getChildContext() {
+        return {
+            store: this.props.store
+        }
+    }
+    
+    render() {
+        return (this.props.children);
+    }
+}
+Provider.childContextTypes = {
+    store: React.PropTypes.object
 };
 
 const { createStore } = Redux;
 
 const render = () => {
     ReactDOM.render(
-        React.createElement(TodoAppComponent, {
-            store: createStore(todoApp)
-        }), document.getElementById('root'));
+        React.createElement(Provider, { store : createStore(todoApp)}, React.createElement(TodoAppComponent)),
+        document.getElementById('root')
+        );
 }
 
 render();
