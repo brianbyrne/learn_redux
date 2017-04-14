@@ -1,3 +1,6 @@
+// import { Provider } from 'react-redux'; //babel style
+const { connect } = ReactRedux;
+
 const todo = (state, action) => {
     switch (action.type) {
         case 'ADD_TODO':
@@ -155,34 +158,32 @@ class TodoList extends Component {
 }
 
 let nextTodoId = 0;
-class AddTodo extends Component {
-    render() {
-        const { store } = this.context;
-        return (
-            React.createElement(
-                'div', {},
-                React.createElement("input", {
-                    ref: (node) => {
-                        this.input = node;
-                    }
-                }),
-                React.createElement('button', {
-                    onClick: () => {
-                        store.dispatch({
-                            type: 'ADD_TODO',
-                            text: this.input.value,
-                            id: nextTodoId++
-                        });
-                        this.input.value = '';
-                    }
-                }, 'Add Todo')
-            )
+let AddTodo = ({ dispatch }) => {
+    let input = null;
+    return (
+        React.createElement(
+            'div', {},
+            React.createElement("input", {
+                ref: (node) => {
+                    input = node;
+                }
+            }),
+            React.createElement('button', {
+                onClick: () => {
+                        dispatch({
+                        type: 'ADD_TODO',
+                        text: input.value,
+                        id: nextTodoId++
+                    });
+                    input.value = '';
+                }
+            }, 'Add Todo')
         )
-    }
+    )
 }
-AddTodo.contextTypes = {
-    store: React.PropTypes.object
-}
+
+// note AddTodo already declared as a class, note the last part of this where AddTodo is passed:
+AddTodo = connect()(AddTodo); // passing nothing to connect, you get dispatch by default (but no subscription to store)
 
 class Footer extends Component {
     render() {
@@ -216,16 +217,13 @@ class TodoAppComponent extends Component {
 
 const { createStore } = Redux;
 const { Provider } = ReactRedux;
-// import { Provider } from 'react-redux'; //babel style
-const { connect } = ReactRedux;
 
-const mapStateToProps = (state) => {
+const mapStateTodoListToProps = (state) => {
     return {
         todos: getVisibleTodos(state.todos, state.visibilityFilter)
     }
 };
-
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchTodoListToProps = (dispatch) => {
     return {
         onTodoClick: (id) => dispatch({ 
             type: 'TOGGLE_TODO',
@@ -233,11 +231,10 @@ const mapDispatchToProps = (dispatch) => {
         })
     }
 }
-
 // see video 27 for converting VisibleTodoList class to ReactRedux connect
 const VisibleTodoList = connect(
-    mapStateToProps,
-    mapDispatchToProps
+    mapStateTodoListToProps,
+    mapDispatchTodoListToProps
 )(TodoList);
 
 const render = () => {
