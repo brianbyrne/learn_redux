@@ -147,42 +147,12 @@ class TodoList extends Component {
                 text: t.text,
                 key: t.id,
                 onClick: () => {
-                    onTodoClick(t)
+                    onTodoClick(t.id)
                 }
             })
         )));
     }
 }
-
-class VisibleTodoList extends Component {
-    componentDidMount() {
-        const { store } = this.context;
-        this.unsubscribe = store.subscribe(() =>
-            this.forceUpdate()
-        );
-    }
-
-    componentWillUnmount() {
-        this.unsubscribe();
-    }
-    
-    render() {
-        const { store } = this.context;
-        const state = store.getState();
-        return (React.createElement(TodoList, {
-            todos: getVisibleTodos(state.todos, state.visibilityFilter),
-            onTodoClick: todo => { 
-                return store.dispatch({
-                type: 'TOGGLE_TODO',
-                id: todo.id
-            })
-            }
-        }));
-    }
-}
-VisibleTodoList.contextTypes = {
-    store: React.PropTypes.object
-};
 
 let nextTodoId = 0;
 class AddTodo extends Component {
@@ -244,11 +214,31 @@ class TodoAppComponent extends Component {
     }
 };
 
-
-
 const { createStore } = Redux;
 const { Provider } = ReactRedux;
 // import { Provider } from 'react-redux'; //babel style
+const { connect } = ReactRedux;
+
+const mapStateToProps = (state) => {
+    return {
+        todos: getVisibleTodos(state.todos, state.visibilityFilter)
+    }
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onTodoClick: (id) => dispatch({ 
+            type: 'TOGGLE_TODO',
+            id
+        })
+    }
+}
+
+// see video 27 for converting VisibleTodoList class to ReactRedux connect
+const VisibleTodoList = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(TodoList);
 
 const render = () => {
     ReactDOM.render(
