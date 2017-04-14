@@ -73,39 +73,22 @@ class Link extends Component {
     }
 }
 
-class FilterLink extends Component {    
-    componentDidMount() {
-        const { store } = this.context;
-        this.unsubscribe = store.subscribe(() =>
-            this.forceUpdate()
-        );
+const mapStateToLinkProps = (state, ownProps) => {
+    return {
+        active: ownProps.filter === state.visibilityFilter
     }
+};
 
-    componentWillUnmount() {
-        this.unsubscribe();
-    }
-    
-    render() {
-        const { store } = this.context;
-        const { filter } = this.props;
-        const state = store.getState();
-        return (
-            React.createElement(Link, {
-                active: filter === state.visibilityFilter,
-                onClick: () => {
-                    console.log('filter clicked');
-                    store.dispatch({
-                        type: 'SET_VISIBILITY_FILTER',
-                        filter: filter
-                    })
-                }
-            }, this.props.children)
-        );
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+    return {
+        onClick: () => (dispatch({  type: 'SET_VISIBILITY_FILTER', filter: ownProps.filter }))
     }
 }
-FilterLink.contextTypes = {
-    store: React.PropTypes.object
-}
+
+const FilterLink = connect(
+    mapStateToLinkProps,
+    mapDispatchToLinkProps
+)(Link);
 
 const getVisibleTodos = (todos, filter) => {
     switch (filter) {
