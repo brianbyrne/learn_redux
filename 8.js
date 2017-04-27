@@ -49,6 +49,29 @@ const todoApp = combineReducers({
     todos,
     visibilityFilter
 });
+
+let nextTodoId = 0;
+const addTodo = (text) => {
+    return {
+        type: 'ADD_TODO',
+        id: nextTodoId++,
+        text
+    };
+};
+
+const setVisibilityFilter = (filter) => {
+    return {
+        type: 'SET_VISIBILITY_FILTER',
+        filter
+    };
+};
+
+const toggleTodo = (id) => {
+    return {
+        type: 'TOGGLE_TODO',
+        id
+    };
+}
  
 const {
     Component
@@ -81,7 +104,7 @@ const mapStateToLinkProps = (state, ownProps) => {
 
 const mapDispatchToLinkProps = (dispatch, ownProps) => {
     return {
-        onClick: () => (dispatch({  type: 'SET_VISIBILITY_FILTER', filter: ownProps.filter }))
+        onClick: () => dispatch(setVisibilityFilter(ownProps.filter))
     }
 }
 
@@ -140,7 +163,6 @@ class TodoList extends Component {
     }
 }
 
-let nextTodoId = 0;
 let AddTodo = ({ dispatch }) => {
     let input = null;
     return (
@@ -153,11 +175,7 @@ let AddTodo = ({ dispatch }) => {
             }),
             React.createElement('button', {
                 onClick: () => {
-                        dispatch({
-                        type: 'ADD_TODO',
-                        text: input.value,
-                        id: nextTodoId++
-                    });
+                        dispatch(addTodo(input.value));
                     input.value = '';
                 }
             }, 'Add Todo')
@@ -208,10 +226,9 @@ const mapStateTodoListToProps = (state) => {
 };
 const mapDispatchTodoListToProps = (dispatch) => {
     return {
-        onTodoClick: (id) => dispatch({ 
-            type: 'TOGGLE_TODO',
-            id
-        })
+        onTodoClick: (id) =>  {
+            dispatch(toggleTodo(id));
+        }
     }
 }
 // see video 27 for converting VisibleTodoList class to ReactRedux connect
