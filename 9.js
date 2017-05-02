@@ -98,7 +98,7 @@ class Tree extends Component {
          return (
             React.createElement('div', {},
                 React.createElement('ul', {}, 
-                    nodes.map((node) => React.createElement('li', {id: nextNodeId++}, node.text))
+                    nodes.map((node) => React.createElement('li', {key: nextNodeId++}, node.text))
                 )
             )
         );
