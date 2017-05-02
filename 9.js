@@ -242,13 +242,20 @@ class Footer extends Component {
 
 nextChildNodeId = 0;
 let AddNodeButton = ({dispatch}) => {
+    let input = null;
+    
     return (
         React.createElement('div', {}, 
+            React.createElement('input', {
+                ref: (node) => {
+                    input = node;
+                }
+            }),
             React.createElement('button', {
                 onClick: () => {
                     dispatch({
                             type: 'ADD_NODE',
-                            text: 'test node text',
+                            text: input.value,
                             id: nextChildNodeId++
                         });
                 }
