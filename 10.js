@@ -10,15 +10,14 @@ const nodes = (state = [], action) => {
             ...state,
             { 
                 id: action.id,
-                text: action.text 
+                text: action.text,
+                editing: false
             }
         ];
         case 'TOGGLE_EDIT':
-            return state.map(n => 
-                n.id === action.id
-                ? Object.assign({}, n, {editing: !n.editing, text: action.text})
-                : n
-            );
+            return state.map(n => {
+                return Object.assign({}, n, {editing: n.id === action.id, text: action.text});
+            });
         default:
             return state;
     }
@@ -42,14 +41,14 @@ class Tree extends Component {
                 React.createElement('ul', {}, 
                     nodes.map((node) => { 
                         if (node.editing) {
-                            return (React.createElement('input', { 
+                            return (React.createElement('input', {
                                 key: node.id,
                                 defaultValue: node.text,
                                 onKeyPress: (e) => {
                                     if (e.charCode == 13) {
                                         dispatch({ id: node.id, text: e.target.value, type: 'TOGGLE_EDIT' })
                                     }
-                                }
+                                },
                             }))
                         }
                         return (React.createElement('li', { 
