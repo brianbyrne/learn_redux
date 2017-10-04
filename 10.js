@@ -46,6 +46,7 @@ class Tree extends Component {
             React.createElement('div', {},
                 React.createElement('ul', {}, 
                     nodes.map((node) => { 
+                        let addSubNodeButton = React.createElement('button', {key: node.id + 1000000}, 'a button')
                         if (node.editing) {
                             let element = (React.createElement('input', {
                                 ref: (input) => {
@@ -59,14 +60,15 @@ class Tree extends Component {
                                     }
                                 },
                             }))
-                            return element;
+                            return [element, addSubNodeButton];
                         }
-                        return (React.createElement('li', { 
+                        return [React.createElement('li', { 
                             key: node.id,
                             onClick: (e) => {
-                                dispatch({ id: node.id, type: 'START_EDIT' }) }
-                            }, 
-                            node.text)); 
+                                dispatch({ id: node.id, type: 'START_EDIT' })}
+                            }, node.text),
+                            React.createElement('button', {key: node.id + 1000000}, 'a button')
+                        ]; 
                     })
                 )
             )
